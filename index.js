@@ -7,31 +7,42 @@ var fs = require('graceful-fs'),
 
 module.exports = function(gulp, ignoreTasks) {
     if (Object.prototype.toString.call(ignoreTasks) !== '[object Array]') {
-      ignoreTasks = [];
+        ignoreTasks = [];
     }
-    gulp.task('task-list', function() {
-        var gulpfileCode = fs.readFileSync('gulpfile.js').toString(),
-            table = new clitable({
-                head: ['Task name', 'Description', 'Dependencies'],
-                chars: {
-                    'top': '' , 'top-mid': '' , 'top-left': '' , 'top-right': '',
-                    'bottom': '' , 'bottom-mid': '' , 'bottom-left': '' , 'bottom-right': '',
-                    'left': '' , 'left-mid': '' , 'mid': '' , 'mid-mid': '',
-                    'right': '' , 'right-mid': '' , 'middle': ' '
-                }
-            }),
-            taskName,
-            start,
-            end,
-            comment,
-            deps;
+    gulp.task('task-list', function () {
+        var gulpfileCode = fs.readFileSync('gulpfile.js').toString(), table = new clitable({
+            head: ['Task name', 'Description', 'Dependencies'],
+            chars: {
+                'top': '',
+                'top-mid': '',
+                'top-left': '',
+                'top-right': '',
+                'bottom': '',
+                'bottom-mid': '',
+                'bottom-left': '',
+                'bottom-right': '',
+                'left': '',
+                'left-mid': '',
+                'mid': '',
+                'mid-mid': '',
+                'right': '',
+                'right-mid': '',
+                'middle': ' '
+            }
+        }), taskName, start, end, comment, deps, regex, fnPos;
 
         for (taskName in gulp.tasks) {
             if (-1 !== ignoreTasks.indexOf(taskName)) {
-              continue;
+                continue;
             }
             if (gulp.tasks.hasOwnProperty(taskName)) {
-                start = gulpfileCode.lastIndexOf("//", gulpfileCode.indexOf(gulp.tasks[taskName].fn.toString()));
+                if (taskName == 'task-list') continue;
+
+                regex = 'gulp\\.task\\s*\\(\\s*[\\\'"]' + taskName + '[\\\'"]';
+                fnPos = gulpfileCode.search(new RegExp(regex));
+                if (fnPos == -1) continue;
+
+                start = gulpfileCode.lastIndexOf("//", fnPos);
                 end = gulpfileCode.indexOf('\n', start);
                 if (start !== -1 && end !== -1) {
                     start += 2;
